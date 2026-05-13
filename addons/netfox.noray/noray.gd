@@ -45,6 +45,8 @@ var local_port: int:
 ## Emitted for any command received from noray.
 signal on_command(command: String, data: String)
 
+signal on_lobby_received(lobby: Dictionary)
+
 ## Emitted when connected to noray.
 signal on_connect_to_host()
 
@@ -64,7 +66,7 @@ signal on_connect_nat(address: String, port: int)
 signal on_connect_relay(address: String, port: int)
 
 func _enter_tree():
-	_protocol.on_command.connect(func (cmd, data): on_command.emit(cmd, data))
+	_protocol.on_command.connect(func(cmd, data): on_command.emit(cmd, data))
 	on_command.connect(_handle_commands)
 
 ## Connect to noray at host.
@@ -113,6 +115,9 @@ func disconnect_from_host():
 ## Register as host.
 func register_host() -> Error:
 	return _put_command("register-host")
+
+func fetch_lobby_list() -> Error:
+	return _put_command("list-lobbies")
 
 ## Register remote address.
 func register_remote(registrar_port: int = 8809, timeout: float = 8, interval: float = 0.1) -> Error:
@@ -204,5 +209,14 @@ func _handle_commands(command: String, data: String):
 		var port = data.to_int()
 		_logger.debug("Received connect relay command to %s:%s", [host, port])
 		on_connect_relay.emit(host, port)
+	elif command == "lobby":
+		var parts = data.split(":")
+		var lobby = {
+			"oid": parts[0],
+			"name": parts[1],
+		}
+
+		on_lobby_received.emit(lobby)
+		_logger.debug("Received lobby: %s", [lobby])
 	else:
 		_logger.trace("Received command %s %s", [command, data])
