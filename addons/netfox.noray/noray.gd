@@ -113,8 +113,11 @@ func disconnect_from_host():
 	_peer.disconnect_from_host()
 
 ## Register as host.
-func register_host() -> Error:
-	return _put_command("register-host")
+func register_host(name: String) -> Error:
+	return _put_command("register-host", name)
+
+func register_game_server() -> Error:
+	return _put_command("register-game")
 
 func fetch_lobby_list() -> Error:
 	return _put_command("list-lobbies")
